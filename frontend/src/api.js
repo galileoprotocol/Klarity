@@ -1,10 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Récupération des variables d'environnement avec fallback
 const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API_BASE_URL = `${REACT_APP_BACKEND_URL}/api`;
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-supabase-project.supabase.co';
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-supabase-anon-key';
+// Log des valeurs pour déboguer
+console.log("REACT_APP_BACKEND_URL:", process.env.REACT_APP_BACKEND_URL);
+console.log("NEXT_PUBLIC_SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL || window.ENV?.NEXT_PUBLIC_SUPABASE_URL);
+
+// Utilisation de REACT_APP_* comme fallback pour la compatibilité
+const SUPABASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://dfvysmgrlemphqprkvbg.supabase.co';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmdnlzbWdybGVtcGhxcHJrdmJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwODE3NzIsImV4cCI6MjA2MjY1Nzc3Mn0.D89hO_-bJODjRby8324qc78btc1Ym6rV-oOHyx4C6SM';
+
+// Log des valeurs utilisées
+console.log("Using SUPABASE_URL:", SUPABASE_URL);
+console.log("Using SUPABASE_ANON_KEY:", SUPABASE_ANON_KEY?.substring(0, 10) + "...");
 
 // Initialize Supabase client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
