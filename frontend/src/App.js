@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './api';
 
-// Constants
-const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-supabase-project.supabase.co';
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-supabase-anon-key';
-
-// Initialize Supabase client
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Import Components
+import ProjectsList from "./ProjectsList";
+import ProjectDetails from "./ProjectDetails";
+import NewProject from "./NewProject";
+import PRDEditor from "./PRDEditor";
 
 // Layout Components
 const Navbar = ({ user, signOut }) => {
@@ -474,7 +472,7 @@ const HomePage = () => {
   );
 };
 
-// Dashboard & Project Components
+// Dashboard Component
 const Dashboard = ({ user }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -629,11 +627,45 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            
+            {/* Protected Routes */}
             <Route 
               path="/dashboard" 
               element={
                 <PrivateRoute user={user}>
                   <Dashboard user={user} />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/projects" 
+              element={
+                <PrivateRoute user={user}>
+                  <ProjectsList />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/projects/new" 
+              element={
+                <PrivateRoute user={user}>
+                  <NewProject />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/projects/:projectId" 
+              element={
+                <PrivateRoute user={user}>
+                  <ProjectDetails />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/projects/:projectId/prd" 
+              element={
+                <PrivateRoute user={user}>
+                  <PRDEditor />
                 </PrivateRoute>
               } 
             />
@@ -644,5 +676,7 @@ function App() {
     </BrowserRouter>
   );
 }
+
+export default App;
 
 export default App;
