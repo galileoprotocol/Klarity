@@ -8,6 +8,9 @@ import ProjectsList from "./ProjectsList";
 import ProjectDetails from "./ProjectDetails";
 import NewProject from "./NewProject";
 import PRDEditor from "./PRDEditor";
+import PRDViewer from "./PRDViewer";
+import BlueprintGenerator from "./BlueprintGenerator";
+import VisionValidator from "./VisionValidator";
 
 // Layout Components
 const Navbar = ({ user, signOut }) => {
@@ -669,6 +672,30 @@ function App() {
                 </PrivateRoute>
               } 
             />
+            <Route 
+              path="/projects/:projectId/prd/view" 
+              element={
+                <PrivateRoute user={user}>
+                  <PRDViewer />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/projects/:projectId/blueprint" 
+              element={
+                <PrivateRoute user={user}>
+                  <BlueprintGenerator />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/projects/:projectId/validate" 
+              element={
+                <PrivateRoute user={user}>
+                  <VisionValidator />
+                </PrivateRoute>
+              } 
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
@@ -676,5 +703,7 @@ function App() {
     </BrowserRouter>
   );
 }
+
+export default App;
 
 export default App;
