@@ -117,15 +117,24 @@ const Login = () => {
     setError(null);
 
     try {
+      console.log("Tentative de connexion avec:", { email });
+      console.log("URL Supabase utilisée:", window.ENV?.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "Non définie");
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
+      
+      console.log("Connexion réussie, data:", data);
       navigate('/dashboard');
     } catch (error) {
-      setError(error.message);
+      console.error("Erreur de connexion:", error);
+      setError(typeof error === 'object' ? error.message || JSON.stringify(error) : error);
     } finally {
       setLoading(false);
     }
