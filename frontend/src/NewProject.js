@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { projectsAPI } from './api';
 import { supabase } from './api';
 
+// Types de projets compatibles avec l'énumération project_type_enum de Supabase
+// Ces valeurs doivent correspondre exactement aux valeurs autorisées par l'énumération
 const PROJECT_TYPES = [
-  { id: 'web_app', name: 'Web Application' },
-  { id: 'mobile_app', name: 'Mobile Application' },
-  { id: 'desktop_app', name: 'Desktop Application' },
+  { id: 'webapp', name: 'Web Application' },
+  { id: 'mobileapp', name: 'Mobile Application' },
+  { id: 'desktopapp', name: 'Desktop Application' },
   { id: 'saas', name: 'SaaS Product' },
   { id: 'marketplace', name: 'Marketplace' },
   { id: 'ecommerce', name: 'E-Commerce' },
@@ -35,6 +37,13 @@ const NewProject = () => {
         throw new Error('User not authenticated');
       }
       
+      console.log("Création de projet avec les données:", {
+        name,
+        description,
+        project_type: projectType,
+        user_id: session.user.id
+      });
+      
       const projectData = {
         name,
         description,
@@ -46,7 +55,12 @@ const NewProject = () => {
       
       const { data, error } = await projectsAPI.createProject(projectData);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
+      
+      console.log("Projet créé avec succès:", data);
       
       // Redirect to the new project page
       if (data && data.length > 0) {
@@ -56,7 +70,7 @@ const NewProject = () => {
       }
     } catch (error) {
       console.error('Error creating project:', error);
-      setError(error.message);
+      setError(typeof error === 'object' ? error.message || JSON.stringify(error) : error);
     } finally {
       setLoading(false);
     }
