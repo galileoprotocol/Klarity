@@ -218,6 +218,10 @@ const Register = () => {
     setError(null);
 
     try {
+      console.log("Tentative d'inscription avec:", { email, password });
+      console.log("URL Supabase utilisée:", window.ENV?.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "Non définie");
+      
+      // Utilisez directement le client supabase importé
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -229,10 +233,16 @@ const Register = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
+      
+      console.log("Inscription réussie, data:", data);
       navigate('/dashboard');
     } catch (error) {
-      setError(error.message);
+      console.error("Erreur d'inscription:", error);
+      setError(typeof error === 'object' ? error.message || JSON.stringify(error) : error);
     } finally {
       setLoading(false);
     }
