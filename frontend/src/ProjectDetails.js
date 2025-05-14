@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { projectsAPI, prdAPI } from './api';
+import { projectsAPI, prdAPI, blueprintsAPI, visionValidationsAPI } from './api';
+import CodeGuide from './CodeGuide';
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [prd, setPRD] = useState(null);
+  const [blueprint, setBlueprint] = useState(null);
+  const [validationResult, setValidationResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,20 +17,42 @@ const ProjectDetails = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
         
         // Fetch project details
-        const { data: projectData, error: projectError } = await projectsAPI.getProject(projectId);
-        if (projectError) throw projectError;
-        setProject(projectData);
+        const projectResponse = await projectsAPI.getProject(projectId);
+        if (projectResponse.error) {
+            console.error('Error fetching project in ProjectDetails:', projectResponse.error);
+            throw projectResponse.error;
+        }
+        setProject(projectResponse.data);
         
         // Fetch PRD if it exists
-        const { data: prdData, error: prdError } = await prdAPI.getProjectPRD(projectId);
-        if (!prdError && prdData) {
-          setPRD(prdData);
+        const prdResponse = await prdAPI.getProjectPRD(projectId);
+        if (prdResponse.error) {
+          console.warn('Warning fetching PRD in ProjectDetails (non-blocking):', prdResponse.error);
         }
+        setPRD(prdResponse.data);
+
+        // NOUVEAU : Fetch Blueprint if it exists
+        const blueprintResponse = await blueprintsAPI.getBlueprintForProject(projectId);
+        if (blueprintResponse.error) {
+          console.warn('Warning fetching Blueprint in ProjectDetails (non-blocking):', blueprintResponse.error);
+        }
+        setBlueprint(blueprintResponse.data);
+        console.log("Blueprint data in ProjectDetails useEffect:", blueprintResponse.data);
+
+        // NOUVEAU : Fetch Vision Validation Result
+        const validationApiResponse = await visionValidationsAPI.getLatestValidationForProject(projectId);
+        if (validationApiResponse.error) {
+          console.warn('Warning fetching Vision Validation result:', validationApiResponse.error);
+        }
+        setValidationResult(validationApiResponse.data);
+        console.log("Vision Validation data in ProjectDetails useEffect:", validationApiResponse.data);
+
       } catch (error) {
-        console.error('Error fetching project data:', error);
-        setError(error.message);
+        console.error('Error fetching project data in ProjectDetails (catch block):', error);
+        setError(error.message || "Failed to fetch project data");
       } finally {
         setLoading(false);
       }
@@ -95,13 +120,6 @@ const ProjectDetails = () => {
             >
               Back to Dashboard
             </button>
-            <button
-              type="button"
-              onClick={() => navigate(`/projects/${projectId}/edit`)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            >
-              Edit Project
-            </button>
           </div>
         </div>
 
@@ -166,7 +184,7 @@ const ProjectDetails = () => {
             </div>
           </div>
 
-          {/* Project Blueprint Section */}
+          {/* Project Blueprint Section MODIFIÉ POUR L'AFFICHAGE */}
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
               <div>
@@ -182,21 +200,72 @@ const ProjectDetails = () => {
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                 onClick={() => navigate(`/projects/${projectId}/blueprint`)}
               >
-                Generate Blueprint
+                {blueprint ? 'View/Edit Blueprint' : 'Generate Blueprint'}
               </button>
             </div>
             <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
-              <div className="text-center py-6">
-                <svg className="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No blueprint generated yet</h3>
-                <p className="mt-1 text-sm text-gray-500">Create a PRD first, then generate your technical blueprint.</p>
-              </div>
+              {blueprint && blueprint.content ? (
+                <div className="space-y-4">
+                  {blueprint.content.answers && Object.keys(blueprint.content.answers).length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-1">Questionnaire Answers:</h4>
+                      <ul className="list-none pl-0 text-sm text-gray-800 bg-gray-50 p-3 rounded-md space-y-1">
+                        {Object.entries(blueprint.content.answers).map(([key, value]) => (
+                          value && (
+                            <li key={key} className="flex">
+                              <strong className="w-1/3 capitalize font-medium text-gray-600">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong> 
+                              <span className="w-2/3 text-gray-900">{value.toString()}</span>
+                            </li>
+                          )
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {blueprint.content.recommendations && Object.keys(blueprint.content.recommendations).length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mt-3 mb-1">Recommendations:</h4>
+                      <ul className="list-none pl-0 text-sm text-gray-800 bg-gray-50 p-3 rounded-md space-y-1">
+                        {Object.entries(blueprint.content.recommendations).map(([key, value]) => (
+                          value && (
+                            (typeof value === 'string' && value.length > 0) ? (
+                              <li key={key} className="flex">
+                                <strong className="w-1/3 capitalize font-medium text-gray-600">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong> 
+                                <span className="w-2/3 text-gray-900">{value}</span>
+                              </li>
+                            ) : (
+                              Array.isArray(value) && value.length > 0 && (
+                                <li key={key} className="flex flex-col">
+                                  <strong className="capitalize font-medium text-gray-600">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong>
+                                  <ul className="list-disc list-inside pl-5 mt-1 space-y-0.5">
+                                    {value.map((item, index) => <li key={index} className="text-gray-900">{item}</li>)}
+                                  </ul>
+                                </li>
+                              )
+                            )
+                          )
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {blueprint.updated_at && 
+                    <p className="text-xs text-gray-500 mt-4 text-right">Last updated: {new Date(blueprint.updated_at).toLocaleString()}</p>
+                  }
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No blueprint generated yet</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {prd ? 'Generate your technical blueprint based on your project vision.' : 'Create a PRD first, then generate your technical blueprint.'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Vision Validator Section */}
+          {/* Vision Validator Section MODIFIÉ POUR AFFICHAGE */}
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
               <div>
@@ -212,17 +281,42 @@ const ProjectDetails = () => {
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                 onClick={() => navigate(`/projects/${projectId}/validate`)}
               >
-                Validate Vision
+                {validationResult ? 'View/Re-validate Vision' : 'Validate Vision'}
               </button>
             </div>
             <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
-              <div className="text-center py-6">
-                <svg className="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No validation performed yet</h3>
-                <p className="mt-1 text-sm text-gray-500">Get insights on your project's feasibility and market fit.</p>
-              </div>
+              {validationResult && validationResult.feedback ? (
+                <div className="space-y-3">
+                  <div className="text-center mb-4">
+                    <p className="text-sm text-gray-500">Overall Score</p>
+                    <p className={`text-4xl font-bold ${validationResult.score >= 70 ? 'text-green-600' : validationResult.score >=40 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      {validationResult.score}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-1">Key Feedback:</h4>
+                    <ul className="list-disc list-inside pl-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-md space-y-1">
+                      {(validationResult.feedback.items && Array.isArray(validationResult.feedback.items)) ? 
+                        validationResult.feedback.items.slice(0, 3).map((item, index) => (
+                          <li key={index}>{item}</li>
+                        )) : 
+                        <li>No detailed feedback items available.</li>
+                      }
+                    </ul>
+                  </div>
+                  {validationResult.created_at && 
+                    <p className="text-xs text-gray-500 mt-3 text-right">Last validation: {new Date(validationResult.created_at).toLocaleString()}</p>
+                  }
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No validation performed yet</h3>
+                  <p className="mt-1 text-sm text-gray-500">Get insights on your project's feasibility and market fit.</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -253,6 +347,23 @@ const ProjectDetails = () => {
                 <h3 className="mt-2 text-sm font-medium text-gray-900">Vibe Coders Network</h3>
                 <p className="mt-1 text-sm text-gray-500">This feature will be available in a future update.</p>
               </div>
+            </div>
+          </div>
+
+          {/* CodeGuide AI Assistant Section */}
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  CodeGuide AI Assistant
+                </h3>
+                <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                  Assistant IA pour conseils de développement et bonnes pratiques
+                </p>
+              </div>
+            </div>
+            <div className="border-t border-gray-200">
+              <CodeGuide projectId={projectId} />
             </div>
           </div>
         </div>

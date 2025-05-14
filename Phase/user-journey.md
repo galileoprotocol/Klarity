@@ -76,3 +76,10 @@ Ce User Journey Map pour Frédéric jusqu'à la fin de MVP1.9 met en évidence l
 Maintenant que nous avons ce flow détaillé, la prochaine étape serait de commencer à **planifier les sprints concrets** en y affectant les User Stories et les sous-tâches techniques correspondantes pour chaque MVP X.Y.
 
 Souhaitez-vous que nous nous lancions dans une première esquisse de planification des sprints pour MVP0 et, par exemple, MVP1.1 et MVP1.2 ?
+
+2.  **Action Utilisateur (Frédéric) & Vibe Coder (Itératif) :**
+    *   Utilisent l'**Espace de Communication (II.2)** (chat, appels vidéo) pour les échanges quotidiens.
+    *   Le Vibe Coder travaille sur les tâches définies dans le **Kanban Board (II.1.2)**, utilise le **Vibe Coding Engine (II.3)**.
+    *   Frédéric suit l'avancement, le budget (II.1.5), et les décisions techniques via le **Transparent Decision Dashboard (II.1.7)**.
+    *   **NOUVEAU (Si fonctionnalité de suivi par phases/milestones activée pour ce projet) : Frédéric consulte également le tableau de bord des Phases du projet, vérifie le statut des Milestones, et visualise les rapports de session de travail du Vibe Coder (descriptions, screenshots).**
+    *   Le Vibe Coder déploie des fonctionnalités sur l'**Environnement de Staging (II.4.1)**.

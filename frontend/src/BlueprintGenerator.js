@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { supabase, blueprintsAPI } from './api'; // Import de supabase et blueprintsAPI
 
 // Composant pour le générateur de Blueprint technique (version basique pour MVP1.4)
 const BlueprintGenerator = () => {
@@ -17,11 +18,16 @@ const BlueprintGenerator = () => {
     budget: '',
     platformType: ''
   });
+
+  // NOUVEAUX ÉTATS POUR LA SAUVEGARDE
+  const [savingBlueprint, setSavingBlueprint] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   
   // Options pour le questionnaire
   const projectTypes = [
-    { id: 'web_app', name: 'Application Web' },
-    { id: 'mobile_app', name: 'Application Mobile' },
+    { id: 'webapp', name: 'Application Web' },
+    { id: 'mobileapp', name: 'Application Mobile' },
     { id: 'saas', name: 'SaaS (Software as a Service)' },
     { id: 'ecommerce', name: 'E-Commerce' },
     { id: 'marketplace', name: 'Marketplace' },
@@ -87,19 +93,15 @@ const BlueprintGenerator = () => {
   
   // Générer des recommandations basées sur les réponses
   const generateRecommendations = () => {
-    // Dans une version future, ce serait basé sur l'IA ou des règles plus complexes
-    // Pour MVP1.4, nous utilisons des recommandations simplifiées basées sur des règles
-    
     let frontend = '';
     let backend = '';
     let database = '';
     let hosting = '';
     let additionalServices = [];
     
-    // Déterminer le frontend
-    if (answers.projectType === 'web_app' || answers.projectType === 'saas' || answers.platformType === 'web') {
+    if (answers.projectType === 'webapp' || answers.projectType === 'saas' || answers.platformType === 'web') {
       frontend = 'React.js avec Next.js, Tailwind CSS pour l\'UI';
-    } else if (answers.projectType === 'mobile_app') {
+    } else if (answers.projectType === 'mobileapp') {
       if (answers.platformType === 'android') {
         frontend = 'Native Android (Kotlin)';
       } else if (answers.platformType === 'ios') {
@@ -111,14 +113,12 @@ const BlueprintGenerator = () => {
       frontend = 'React.js pour web, React Native pour mobile';
     }
     
-    // Déterminer le backend
     if (answers.dataComplexity === 'complex' || answers.securityLevel === 'high') {
       backend = 'Node.js (Express) ou Python (FastAPI/Django) avec architecture microservices';
     } else {
       backend = 'Node.js (Express) ou Python (FastAPI) avec architecture monolithique';
     }
     
-    // Déterminer la base de données
     if (answers.dataComplexity === 'complex') {
       database = 'PostgreSQL avec potentiellement MongoDB pour certains aspects';
     } else if (answers.dataComplexity === 'moderate') {
@@ -127,7 +127,6 @@ const BlueprintGenerator = () => {
       database = 'SQLite ou PostgreSQL simple';
     }
     
-    // Déterminer l'hébergement
     if (answers.userCount === 'enterprise' || answers.userCount === 'large') {
       hosting = 'AWS ou GCP avec Kubernetes pour la scalabilité';
     } else if (answers.timeConstraint === 'urgent') {
@@ -136,7 +135,6 @@ const BlueprintGenerator = () => {
       hosting = 'AWS, GCP ou Azure avec conteneurs Docker';
     }
     
-    // Services additionnels
     if (answers.securityLevel === 'high') {
       additionalServices.push('AWS Cognito ou Auth0 pour l\'authentification avancée');
       additionalServices.push('Audit de sécurité régulier');
@@ -164,6 +162,62 @@ const BlueprintGenerator = () => {
       hosting,
       additionalServices
     };
+  };
+
+  // NOUVELLE FONCTION POUR SAUVEGARDER ET TERMINER AVEC PLUS DE LOGS
+  const handleSaveAndFinish = async () => {
+    console.log("handleSaveAndFinish: DÉBUT"); // LOG 1
+    setSavingBlueprint(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+    try {
+      console.log("handleSaveAndFinish: Tentative de récupération de l'utilisateur..."); // LOG 2
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error("handleSaveAndFinish: Utilisateur non authentifié !"); // LOG ERREUR
+        setSaveError("Utilisateur non authentifié. Veuillez vous reconnecter.");
+        setSavingBlueprint(false);
+        return;
+      }
+      console.log("handleSaveAndFinish: Utilisateur récupéré:", user.id); // LOG 3
+
+      const recommendations = generateRecommendations();
+      const blueprintContent = {
+        answers: answers,
+        recommendations: recommendations
+      };
+
+      const blueprintPayload = {
+        project_id: projectId,
+        user_id: user.id,
+        content: blueprintContent
+      };
+      
+      console.log("handleSaveAndFinish: Payload pour sauvegarde blueprint:", blueprintPayload); // LOG 4 (déjà présent)
+
+      console.log("handleSaveAndFinish: Appel à blueprintsAPI.saveBlueprint..."); // LOG 5
+      const { data, error } = await blueprintsAPI.saveBlueprint(blueprintPayload);
+      console.log("handleSaveAndFinish: Retour de blueprintsAPI.saveBlueprint:", { data, error }); // LOG 6
+
+      if (error) {
+        console.error("handleSaveAndFinish: Erreur retournée par blueprintsAPI.saveBlueprint:", error); // LOG ERREUR
+        throw error;
+      }
+
+      console.log("handleSaveAndFinish: Blueprint sauvegardé avec succès:", data); // LOG 7
+      setSaveSuccess(true);
+      setTimeout(() => {
+        navigate(`/projects/${projectId}`);
+      }, 1500);
+
+    } catch (err) {
+      console.error("handleSaveAndFinish: Échec global (catch):", err); // LOG ERREUR
+      setSaveError(err.message || "Une erreur est survenue lors de la sauvegarde du blueprint.");
+    } finally {
+      console.log("handleSaveAndFinish: FIN (finally)"); // LOG 8
+      setSavingBlueprint(false);
+    }
   };
   
   // Contenu basé sur l'étape actuelle
@@ -302,6 +356,17 @@ const BlueprintGenerator = () => {
               Basé sur vos réponses, voici nos recommandations techniques pour votre projet.
             </p>
             
+            {saveSuccess && (
+              <div className="mb-4 p-4 text-sm text-green-700 bg-green-100 rounded-lg" role="alert">
+                Blueprint sauvegardé avec succès !
+              </div>
+            )}
+            {saveError && (
+              <div className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+                Erreur de sauvegarde: {saveError}
+              </div>
+            )}
+
             <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
               <div className="px-4 py-5 sm:px-6 bg-gray-50">
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -475,13 +540,21 @@ const BlueprintGenerator = () => {
               ) : (
                 <button
                   type="button"
-                  onClick={() => navigate(`/projects/${projectId}`)}
+                  onClick={handleSaveAndFinish}
+                  disabled={savingBlueprint}
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
-                  Terminer
+                  {savingBlueprint ? 'Sauvegarde en cours...' : 'Sauvegarder et Terminer'}
                 </button>
               )}
             </div>
+            
+            {step === 4 && saveError && (
+              <p className="mt-4 text-sm text-red-600">Erreur de sauvegarde : {saveError}</p>
+            )}
+            {step === 4 && saveSuccess && (
+              <p className="mt-4 text-sm text-green-600">Blueprint sauvegardé avec succès ! Vous allez être redirigé...</p>
+            )}
           </div>
         </div>
       </div>

@@ -47,6 +47,10 @@ Nous allons nous baser sur la stack technique "favorite" que nous avions défini
             *   `projects` (MVP1.1 : `id`, `owner_user_id`, `name`, `project_type`)
             *   `project_documents` (MVP1.2 : `id`, `project_id`, `document_type='prd'`, `content` JSONB - version très simplifiée)
             *   (Optionnel pour MVP0.2 si formulaire Supabase) `waitlist_subscribers` (`email`, `name`, `created_at`).
+        *   **Tables envisagées pour Post-MVP1.9 (Suivi de Développement Détaillé) :**
+            *   `project_phases` (id, project_id, name, description, objectives, start_date, end_date_target, status, order, created_at, updated_at)
+            *   `project_milestones` (id, project_phase_id, name, description, target_date, status, order, created_at, updated_at)
+            *   `developer_work_sessions` (id, project_phase_id, user_id_developer, session_date, duration_hours, description, screenshots_urls, milestone_id (optionnel), linked_task_ids (optionnel), created_at, updated_at)
         *   **Row Level Security (RLS) :** À configurer dès la création des tables pour la sécurité des données.
         *   **Justification :** Base de données relationnelle robuste, et Supabase en facilite grandement la gestion et la sécurisation.
     *   **Stockage de Fichiers (Pas prioritaire pour MVP0/1.1/1.2, mais l'infra est là avec Supabase Storage)**

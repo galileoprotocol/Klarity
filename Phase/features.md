@@ -113,7 +113,8 @@ Cela aidera à avoir une vue claire des fonctionnalités livrées à la fin de M
 
 *   **Marketplace Fonctionnelle :** Pas de création de profil Vibe Coder sur la plateforme, pas de publication de mission par le Fondateur sur la plateforme, pas de matching, pas de contractualisation, pas de paiement via la plateforme.
 *   **Vibe Coding Engine & Outils IA Avancés pour Vibe Coders.**
-*   **Collaboration Projet Avancée :** Pas de Kanban, Gantt, appels vidéo intégrés, système de validation de feature structuré.
+*   **Collaboration Projet Avancée :** Pas de Kanban, Gantt évolué, appels vidéo intégrés, système de validation de feature structuré au-delà du concept initial.
+    *   *Évolution Post-MVP1.9 : Implémentation d'un suivi de développement détaillé par phases et milestones, permettant au PM de définir la structure, au développeur de rapporter son travail (temps, description, screenshots), et au client de visualiser la progression de manière transparente.*
 *   **Vision Validator & Blueprint Generator Avancés :** Pas d'analyse sémantique profonde, pas de diagrammes d'architecture complexes, pas de Market Fit Simulator.
 *   **Personnalisation Avancée de CodeGuide :** Pas de modification des sections PRD, pas de bibliothèque de templates étendue, pas de wireframe/customer journey tool complet.
 *   **Fonctionnalités Complètes du Portail Client :** Gestion avancée des abonnements, historique de paiement détaillé, support multicanal complet, coaching.

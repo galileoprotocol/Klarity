@@ -120,3 +120,25 @@ Ce document présente la conception de l'expérience utilisateur (UX) et de l'in
 Par exemple, si vous me dites : **"Détaillons l'écran 3.9 : Interface de l'Éditeur de PRD pour les wireframes"**, je pourrai vous fournir une description textuelle très détaillée de sa structure, de ses éléments, et de ses interactions, que vous (ou un designer) pourrez ensuite traduire en un wireframe visuel.
 
 Prêt à commencer à détailler un de ces écrans, ou préférez-vous une autre approche pour le document UX/UI ?
+
+--- 
+
+**8. Écrans Envisagés pour Fonctionnalités Post-MVP1.9 (Exemples)**
+
+    *   8.1. **Suivi de Développement Détaillé par Phases et Milestones :**
+        *   8.1.1. **Interface de Gestion des Phases et Milestones (pour PM) :**
+            *   Vue liste des phases d'un projet.
+            *   Formulaire/Modale de création/édition d'une phase (nom, description, objectifs, dates).
+            *   Dans une phase : Vue liste des milestones.
+            *   Formulaire/Modale de création/édition d'un milestone (nom, description, date cible, statut).
+        *   8.1.2. **Interface de Saisie des Sessions de Travail (pour Développeur) :**
+            *   Sélecteur de phase active.
+            *   Formulaire de saisie de session (durée, description, upload screenshots, lien optionnel vers milestone).
+            *   Vue historique de ses propres sessions.
+        *   8.1.3. **Interface de Visualisation Client :**
+            *   Vue d'ensemble des phases et milestones du projet (avec statuts).
+            *   Vue détaillée d'une phase affichant les milestones et les sessions de travail (avec descriptions et screenshots).
+    *   8.2. **Marketplace Vibe Coders (Écrans Fondateur & Vibe Coder) :**
+        *   Recherche de Vibe Coders, Profils Vibe Coders, Publication de Missions, etc.
+    *   8.3. **Tableau de Bord de Projet Collaboratif Avancé (Module II) :**
+        *   Vue Kanban détaillée, Vue Gantt interactive.

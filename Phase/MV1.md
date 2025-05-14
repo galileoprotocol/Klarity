@@ -278,6 +278,19 @@ Ce document détaille les sous-tâches techniques nécessaires pour réaliser le
         *   T1.9.10.2 : Préparer page "Tarifs" site public.
         *   T1.9.11.1 : Mettre à jour landing page pour refléter lancement MVP1.
 
+**À la fin de MVP1.9, Klarity est "Commercialisable" au sens où :**
+*   Les Fondateurs peuvent s'inscrire (Freemium, et potentiellement payer pour un plan "Starter" donnant accès à plus de projets ou de templates, même si l'achat se fait via contact au début).
+*   Ils peuvent utiliser les outils "Vision-First" pour une valeur tangible.
+*   Klarity a une base d'utilisateurs, du feedback, et peut commencer à attirer activement des Vibe Coders pour la phase suivante.
+
+---
+**Perspectives Clés Post-MVP1.9 (Évolutions Majeures)**
+
+*   **Développement de la Marketplace Vibe Coders (Module III) :** Permettre aux Fondateurs de trouver et collaborer avec des développeurs certifiés Kodi.
+*   **Enrichissement du Co-Pilotage (Module II) :** Introduction d'outils de gestion de projet collaboratifs plus avancés, incluant un **système de suivi de développement par Phases et Milestones détaillé** (comme spécifié dans `progress_log1` et `Roadmap.md`), un Kanban, un Gantt simplifié, etc.
+*   **Montée en Puissance de l'IA (CodeGuide & Autres Modules) :** IA contextuelle plus poussée, Vision Validator plus détaillé, Blueprint Generator plus intelligent.
+*   **Fonctionnalités de Monétisation Avancées.**
+
 ---
 Ce niveau de détail pour chaque MVP X.Y, avec ses User Stories clés et ses sous-tâches techniques, constitue un excellent **PRD Technique** pour guider les sprints.
 
@@ -378,5 +391,12 @@ L'objectif de ce Grand MVP1 est de permettre aux Fondateurs de structurer leur v
 *   Ils peuvent utiliser les outils "Vision-First" pour une valeur tangible.
 *   Klarity a une base d'utilisateurs, du feedback, et peut commencer à attirer activement des Vibe Coders pour la phase suivante.
 
+---
+**Perspectives Clés Post-MVP1.9 (Évolutions Majeures)**
+
+*   **Développement de la Marketplace Vibe Coders (Module III) :** Permettre aux Fondateurs de trouver et collaborer avec des développeurs certifiés Kodi.
+*   **Enrichissement du Co-Pilotage (Module II) :** Introduction d'outils de gestion de projet collaboratifs plus avancés, incluant un **système de suivi de développement par Phases et Milestones détaillé** (comme spécifié dans `progress_log1` et `Roadmap.md`), un Kanban, un Gantt simplifié, etc.
+*   **Montée en Puissance de l'IA (CodeGuide & Autres Modules) :** IA contextuelle plus poussée, Vision Validator plus détaillé, Blueprint Generator plus intelligent.
+*   **Fonctionnalités de Monétisation Avancées.**
 
 https://aistudio.google.com/prompts/1a70t_Kmtc_19MurBEecV7JZdXHSp8-cO

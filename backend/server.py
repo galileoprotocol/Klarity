@@ -6,11 +6,22 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 import uuid
 from datetime import datetime, timedelta
 import httpx
 import json
+from io import BytesIO
+from starlette.responses import StreamingResponse
+
+# Import pour le Chatbot AI CodeGuide
+from external_integrations.ai_codeguide import AICodeGuide
+# Import pour l'Assistant IA contextuel par section
+from external_integrations.ai_section_assistant import AISectionAssistant
+
+# Suppression des imports WeasyPrint
+# from weasyprint import HTML, CSS
+# from weasyprint.fonts import FontConfiguration
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -64,6 +75,33 @@ class PRD(PRDBase):
     user_id: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Model for PDF export request
+class PDFRequest(BaseModel):
+    html_content: str
+    filename: str = "exported_prd.pdf"
+
+# Modèle pour les requêtes du Chatbot AI CodeGuide
+class CodeGuideRequest(BaseModel):
+    question: str
+    project_id: Optional[str] = None
+    message_history: Optional[List[Dict[str, str]]] = None
+    provider: Optional[str] = "claude"  # Valeur par défaut: claude
+
+class CodeGuideResponse(BaseModel):
+    response: str
+
+# Modèle pour les requêtes d'assistant IA par section
+class SectionAssistRequest(BaseModel):
+    section_key: str
+    section_title: str
+    section_text: str
+    action_key: str
+    project_context: Optional[Dict[str, Any]] = None
+    provider: Optional[str] = "claude"  # Valeur par défaut: claude
+
+class SectionAssistResponse(BaseModel):
+    response: str
 
 # Helper function to make authenticated requests to Supabase
 async def supabase_request(method: str, endpoint: str, json_data: Optional[Dict] = None, params: Optional[Dict] = None):
@@ -170,6 +208,122 @@ async def update_prd(prd_id: str, prd_update: Dict[str, Any]):
     params = {"id": f"eq.{prd_id}"}
     response = await supabase_request("put", "/rest/v1/prds", data, params)
     return response
+
+# Endpoint pour le Chatbot AI CodeGuide
+@api_router.post("/codeguide", response_model=CodeGuideResponse)
+async def get_codeguide_response(request: CodeGuideRequest):
+    """
+    Endpoint pour obtenir des réponses du Chatbot AI CodeGuide.
+    """
+    logger.info(f"Requête CodeGuide reçue. Question: {request.question[:50]}...")
+    
+    try:
+        # Initialiser le CodeGuide avec le fournisseur demandé
+        codeguide = AICodeGuide(provider=request.provider)
+        
+        # Récupérer les informations du projet si un project_id est fourni
+        project_context = None
+        prd_content = None
+        
+        if request.project_id:
+            # Récupérer les informations du projet
+            try:
+                params = {"id": f"eq.{request.project_id}"}
+                project_response = await supabase_request("get", "/rest/v1/projects", params=params)
+                if project_response:
+                    project_context = project_response[0]
+                
+                # Récupérer le PRD associé
+                prd_params = {"project_id": f"eq.{request.project_id}"}
+                prd_response = await supabase_request("get", "/rest/v1/prds", params=prd_params)
+                if prd_response:
+                    prd_content = prd_response[0].get("content", {})
+            
+            except Exception as e:
+                logger.warning(f"Erreur lors de la récupération du contexte du projet: {e}")
+                # Continuer sans contexte en cas d'erreur
+                pass
+        
+        # Obtenir la réponse du LLM
+        response = await codeguide.get_response(
+            question=request.question,
+            project_context=project_context,
+            prd_content=prd_content,
+            message_history=request.message_history
+        )
+        
+        return CodeGuideResponse(response=response)
+    
+    except Exception as e:
+        logger.error(f"Erreur avec le Chatbot AI CodeGuide: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la génération de la réponse: {str(e)}"
+        )
+
+# Endpoint pour l'assistance IA contextuelle par section
+@api_router.post("/section-assist", response_model=SectionAssistResponse)
+async def get_section_assistance(request: SectionAssistRequest):
+    """
+    Endpoint pour obtenir une assistance IA spécifique à une section du PRD.
+    """
+    logger.info(f"Requête d'assistance IA pour section {request.section_key}, action {request.action_key}")
+    
+    try:
+        # Initialiser l'assistant avec le fournisseur demandé
+        section_assistant = AISectionAssistant(provider=request.provider)
+        
+        # Obtenir l'assistance pour la section
+        response = await section_assistant.get_section_assistance(
+            section_key=request.section_key,
+            section_title=request.section_title,
+            section_text=request.section_text,
+            action_key=request.action_key,
+            project_context=request.project_context
+        )
+        
+        return SectionAssistResponse(response=response)
+    
+    except Exception as e:
+        logger.error(f"Erreur avec l'Assistant IA par section: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la génération de l'assistance: {str(e)}"
+        )
+
+# PDF Export Route - On commente l'implémentation actuelle
+# @api_router.post("/prd/export/pdf")
+# async def export_prd_pdf(request: PDFRequest):
+#     logger.info(f"Received request to export PRD to PDF: {request.filename}")
+#     try:
+#         # Configure fonts if needed (optional, depends on your HTML content)
+#         font_config = FontConfiguration()
+# 
+#         # Convert HTML to PDF in memory
+#         html = HTML(string=request.html_content)
+#         pdf_bytes = html.write_pdf(font_config=font_config)
+# 
+#         logger.info(f"Successfully generated PDF: {request.filename}")
+# 
+#         # Create a streaming response
+#         return StreamingResponse(
+#             BytesIO(pdf_bytes),
+#             media_type="application/pdf",
+#             headers={f'Content-Disposition': f'attachment; filename="{request.filename}"'}
+#         )
+# 
+#     except Exception as e:
+#         logger.error(f"Error generating PDF for {request.filename}: {e}", exc_info=True)
+#         raise HTTPException(status_code=500, detail=f"Could not generate PDF: {e}")
+
+# Endpoint placeholder simple pour signaler que le PDF n'est pas disponible côté serveur
+@api_router.post("/prd/export/pdf")
+async def export_prd_pdf(request: PDFRequest):
+    logger.info(f"Received PDF export request, but server-side PDF is not available: {request.filename}")
+    raise HTTPException(
+        status_code=501, 
+        detail="Server-side PDF export is not implemented. Please use client-side PDF generation."
+    )
 
 # Include the router in the main app
 app.include_router(api_router)

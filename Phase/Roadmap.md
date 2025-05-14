@@ -279,8 +279,34 @@ Maintenant que nous avons cette décomposition pour MVP0 et MVP1, la prochaine �
 
 Voulez-vous que nous tentions de faire un premier découpage en sprints pour MVP0 et les premières phases de MVP1 (par exemple, MVP1.1 et MVP1.2) ? Cela nous donnerait une idée de ce qui pourrait être accompli dans les toutes premières semaines de développement.
 
+---
 
+**Évolutions Majeures Prévues Post-MVP1.9 (Exemples)**
+---
 
+*   **MVP2.X : Module II - Co-Pilotage Humain + IA & Suivi de Développement Avancé**
+    *   **Fonctionnalité : Suivi de Développement Détaillé par Phases et Milestones**
+        *   **Objectif :** Offrir une gestion de projet transparente avec définition de phases, de milestones au sein des phases, et reporting détaillé des sessions de travail par les développeurs (temps, description, screenshots).
+        *   **Impact Modélisation Données :**
+            *   Ajout des tables `project_phases` et `project_milestones`.
+            *   Modification de `developer_work_sessions` pour lier aux milestones.
+            *   (Référence : voir modélisation détaillée dans `progress_log1`)
+        *   **Impact Backend :**
+            *   Développement d'APIs CRUD pour `project_phases` et `project_milestones`.
+            *   Mise à jour des APIs pour `developer_work_sessions`.
+        *   **Impact Frontend :**
+            *   Interfaces de gestion des phases et milestones pour le PM.
+            *   Interface de saisie des sessions de travail pour le Développeur.
+            *   Interfaces de visualisation pour le Client.
+        *   *Note : Les User Stories et la conception UX/UI détaillées pour cette fonctionnalité sont à élaborer.* 
+
+*   **MVP2.Y : Marketplace de Vibe Coders (Fonctionnalités de Base)**
+    *   Profils Vibe Coders, publication de missions, matching simple, contractualisation.
+
+*   **MVP2.Z : Améliorations IA CodeGuide**
+    *   Assistance IA contextuelle avancée dans l'éditeur PRD (cf. discussions sur le bouton IA par section).
+
+// ... (Autres évolutions majeures envisagées)
 
 
 https://aistudio.google.com/prompts/1a70t_Kmtc_19MurBEecV7JZdXHSp8-cO
